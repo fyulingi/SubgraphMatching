@@ -83,33 +83,26 @@ void WanderJoin::Expand(ui index) {
   const ui *u_can_const_ptr = data_graph_->getNeighborsByLabel(embedding_[node_to_index_[parent_node_[index][0]]],
                                                                query_graph_->getVertexLabel(join_order_[index]),
                                                                count);
-//  cout << embedding_[node_to_index_[parent_node_[index][0]]] << " " << query_graph_->getVertexLabel(join_order_[index]) << " " << count << endl;
   ui* u_can_ptr = const_cast<ui*>(u_can_const_ptr);
   ui* wait_for_delete = nullptr;
   if (parent_node_[index].size() > 1) {
     ui *candidate = new ui[count];
     wait_for_delete = candidate;
     ui candidate_count = 0;
-//    cout << "----------" << endl;
-//    cout << "0: ";
-//    for (ui in = 0; in < count; ++in) cout << u_can_const_ptr[in] << " ";
-//    cout << endl;
     for (ui u_p_index = 1; u_p_index < parent_node_[index].size(); ++u_p_index) {
 
       ui this_count = 0;
       const ui *this_can_ptr = data_graph_->getNeighborsByLabel(embedding_[node_to_index_[parent_node_[index][u_p_index]]],
                                                              query_graph_->getVertexLabel(join_order_[index]),
                                                              this_count);
-//      cout << u_p_index << ": ";
-//      for (ui in = 0; in < this_count; ++in) cout << this_can_ptr[in] << " ";
-//      cout << endl;
       ComputeSetIntersection::ComputeCandidates(u_can_ptr, count, this_can_ptr, this_count, candidate, candidate_count);
-//      for (ui in = 0; in < candidate_count; ++in) cout << candidate[in] << " ";
-//      cout << endl;
       swap(u_can_ptr, candidate);
       swap(count, candidate_count);
     }
   }
+//  cout << "count = " << count << " ";
+  for (ui in = 0; in < count; ++in) cout << u_can_ptr[in] << " ";
+  cout << endl;
   if (!count) { if (parent_node_[index].size() > 1) delete[] wait_for_delete; return;}
   total_count_[index] += count;
 //  std::uniform_int_distribution<> distrib(0, count-1);
@@ -120,29 +113,21 @@ void WanderJoin::Expand(ui index) {
 
   for (ui can_count = 0; can_count < sample_total; ++can_count) {
     embedding_[index] = u_can_ptr[can_count];
-    visited_node_[u_can_ptr[can_count]] = true;
-    if (IsomorphismTest(visited_node_, embedding_, index)) Expand(index+1);
-    visited_node_[u_can_ptr[can_count]] = false;
+    if (IsomorphismTest(visited_node_, embedding_, index)) {
+      visited_node_[u_can_ptr[can_count]] = true;
+      Expand(index+1);
+      visited_node_[u_can_ptr[can_count]] = false;
+    }
   }
   delete[] wait_for_delete;
 }
 
 ull WanderJoin::GetCard() {
   GetJoinOrder();
-  cout << "join order:" << endl;
-  for (auto u : join_order_) cout << u << " ";
-  cout << endl << "node_to_index" << endl;
-  for (auto index : node_to_index_) cout << index << " ";
-  cout << endl << "parent nodes:" << endl;
-  for (auto& x : parent_node_) {
-    for (auto u : x) cout << u << " ";
-    cout << endl;
-  }
-
 
   //  first node
   ui first_node_count = 0;
-  const ui* first_node_ptr = data_graph_->getVerticesByLabel(data_graph_->getVertexLabel(join_order_[0]), first_node_count);
+  const ui* first_node_ptr = data_graph_->getVerticesByLabel(query_graph_->getVertexLabel(join_order_[0]), first_node_count);
   if (!first_node_count) return 0;
   total_count_[0] = first_node_count;
 
@@ -161,7 +146,7 @@ ull WanderJoin::GetCard() {
     Expand(1);
     visited_node_[first_embedding] = false;
   }
-//  cout << "succ_count = " << succ_count_ << endl;
+  cout << "succ_count = " << succ_count_ << endl;
 
   cout << "total_count_: " << endl;
   for (auto x : total_count_) cout << x << " ";
