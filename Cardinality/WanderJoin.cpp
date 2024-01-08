@@ -11,6 +11,8 @@
 
 using namespace std;
 
+const ui LEAST_NUM = 5;
+
 WanderJoin::WanderJoin(Graph *data_graph, Graph *query_graph, SampleType sample_type, double sample_ratio):
     data_graph_(data_graph), query_graph_(query_graph), succ_count_(0), sample_type_(sample_type), sample_ratio_(sample_ratio) {
   embedding_ = new ui[query_graph->getVerticesCount()];
@@ -100,23 +102,21 @@ void WanderJoin::Expand(ui index) {
       swap(count, candidate_count);
     }
   }
-//  cout << "count = " << count << " ";
-  for (ui in = 0; in < count; ++in) cout << u_can_ptr[in] << " ";
-  cout << endl;
   if (!count) { if (parent_node_[index].size() > 1) delete[] wait_for_delete; return;}
   total_count_[index] += count;
-//  std::uniform_int_distribution<> distrib(0, count-1);
-  ui sample_total = count;
-//  if (sample_type_ == SampleType::Linear) sample_total = max((ui)1, ui(count*sample_ratio_));
-//  else sample_total = max((ui)1, ui(log(count)*sample_ratio_));
+  std::uniform_int_distribution<> distrib(0, count-1);
+  ui sample_total = 0;
+  if (sample_type_ == SampleType::Linear) sample_total = max((ui)1, ui(count*sample_ratio_));
+  else sample_total = max((ui)1, ui(log(count)*sample_ratio_));
+  sample_total = max(sample_total, LEAST_NUM);
   sample_count_[index] += sample_total;
 
   for (ui can_count = 0; can_count < sample_total; ++can_count) {
-    embedding_[index] = u_can_ptr[can_count];
+    embedding_[index] = u_can_ptr[distrib(gen_)];
     if (IsomorphismTest(visited_node_, embedding_, index)) {
-      visited_node_[u_can_ptr[can_count]] = true;
+      visited_node_[embedding_[index]] = true;
       Expand(index+1);
-      visited_node_[u_can_ptr[can_count]] = false;
+      visited_node_[embedding_[index]] = false;
     }
   }
   delete[] wait_for_delete;
@@ -131,16 +131,14 @@ ull WanderJoin::GetCard() {
   if (!first_node_count) return 0;
   total_count_[0] = first_node_count;
 
-//  std::uniform_int_distribution<> distrib(0, first_node_count-1);
-  ui sample_total = first_node_count;
-//  if (sample_type_ == SampleType::Linear) sample_total = max((ui)1, ui(first_node_count*sample_ratio_));
-//  else sample_total = max((ui)1, ui(log(first_node_count)*sample_ratio_));
+  std::uniform_int_distribution<> distrib(0, first_node_count-1);
+  ui sample_total = 0;
+  if (sample_type_ == SampleType::Linear) sample_total = max((ui)1, ui(first_node_count*sample_ratio_));
+  else sample_total = max((ui)1, ui(log(first_node_count)*sample_ratio_));
+  sample_total = max(sample_total, LEAST_NUM);
   sample_count_[0] = sample_total;
-//  cout << "sample total = " << sample_total << endl;
-  for (ui index = 0; index < first_node_count; ++index) {
-//  for (ui sample_count = 0; sample_count < sample_total; ++sample_count) {
-    ui first_embedding = first_node_ptr[index];
-//    ui first_embedding = first_node_ptr[distrib(gen_)];
+  for (ui sample_count = 0; sample_count < sample_total; ++sample_count) {
+    ui first_embedding = first_node_ptr[distrib(gen_)];
     embedding_[0] = first_embedding;
     visited_node_[first_embedding] = true;
     Expand(1);
