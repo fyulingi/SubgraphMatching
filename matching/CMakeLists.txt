@@ -13,11 +13,20 @@ set(SUBGRAPH_MATCHING_FILE_LIST
         GenerateFilteringPlan.h
         StudyPerformance.cpp)
 
+set(EST_CARD_FILE_LIST
+        matchingcommand.cpp
+        matchingcommand.h
+        EstCard.cpp
+)
+
 set(GRAPH_CONVERTER_FILE_LIST
         GraphConverter.cpp)
 
 add_executable(SubgraphMatching.out ${SUBGRAPH_MATCHING_FILE_LIST})
 target_link_libraries(SubgraphMatching.out graph utility)
+
+add_executable(EstCard.out ${EST_CARD_FILE_LIST})
+target_link_libraries(EstCard.out graph utility card)
 
 add_executable(GraphConverter.out ${GRAPH_CONVERTER_FILE_LIST})
 target_link_libraries(GraphConverter.out graph utility)

@@ -21,7 +21,9 @@ MatchingCommand::MatchingCommand(const int argc, char **argv) : CommandParser(ar
     options_key[OptionKeyword::SpectrumAnalysisOrderNum] = "-order_num";
     options_key[OptionKeyword::DistributionFilePath] = "-dis_file";
     options_key[OptionKeyword::CSRFilePath] = "-csr";
-    processOptions();
+    options_key[OptionKeyword::CardEstMethod] = "-method";
+    options_key[OptionKeyword::SampleRatio] = "-ratio";
+  processOptions();
 };
 
 void MatchingCommand::processOptions() {
@@ -69,4 +71,7 @@ void MatchingCommand::processOptions() {
 
     // CSR file path
     options_value[OptionKeyword::CSRFilePath] = getCommandOption(options_key[OptionKeyword::CSRFilePath]);
+
+    options_value[OptionKeyword::CardEstMethod] = getCommandOption(options_key[OptionKeyword::CardEstMethod]);
+    options_value[OptionKeyword::SampleRatio] = getCommandOption(options_key[OptionKeyword::SampleRatio]);
 }

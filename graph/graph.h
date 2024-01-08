@@ -41,7 +41,7 @@ private:
     std::unordered_map<LabelID, ui>* nlf_;
 #endif
 
-private:
+ public:
     void BuildReverseIndex();
 
 #if OPTIMIZED_LABELED_GRAPH == 1

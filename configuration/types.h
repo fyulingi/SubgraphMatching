@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 typedef unsigned int ui;
+typedef unsigned long long ull;
 
 typedef uint32_t VertexID;
 typedef ui LabelID;

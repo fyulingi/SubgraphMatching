@@ -11,3 +11,4 @@ set(CMAKE_CXX_FLAGS
 add_subdirectory(graph)
 add_subdirectory(matching)
 add_subdirectory(utility)
+add_subdirectory(Cardinality)
