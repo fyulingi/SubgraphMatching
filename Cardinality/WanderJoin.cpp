@@ -83,51 +83,61 @@ void WanderJoin::Expand(ui index) {
   const ui *u_can_const_ptr = data_graph_->getNeighborsByLabel(embedding_[node_to_index_[parent_node_[index][0]]],
                                                                query_graph_->getVertexLabel(join_order_[index]),
                                                                count);
-  cout << embedding_[node_to_index_[parent_node_[index][0]]] << " " << query_graph_->getVertexLabel(join_order_[index]) << " " << count << endl;
+//  cout << embedding_[node_to_index_[parent_node_[index][0]]] << " " << query_graph_->getVertexLabel(join_order_[index]) << " " << count << endl;
   ui* u_can_ptr = const_cast<ui*>(u_can_const_ptr);
   ui* wait_for_delete = nullptr;
   if (parent_node_[index].size() > 1) {
     ui *candidate = new ui[count];
     wait_for_delete = candidate;
     ui candidate_count = 0;
+//    cout << "----------" << endl;
+//    cout << "0: ";
+//    for (ui in = 0; in < count; ++in) cout << u_can_const_ptr[in] << " ";
+//    cout << endl;
     for (ui u_p_index = 1; u_p_index < parent_node_[index].size(); ++u_p_index) {
 
       ui this_count = 0;
       const ui *this_can_ptr = data_graph_->getNeighborsByLabel(embedding_[node_to_index_[parent_node_[index][u_p_index]]],
                                                              query_graph_->getVertexLabel(join_order_[index]),
                                                              this_count);
+//      cout << u_p_index << ": ";
+//      for (ui in = 0; in < this_count; ++in) cout << this_can_ptr[in] << " ";
+//      cout << endl;
       ComputeSetIntersection::ComputeCandidates(u_can_ptr, count, this_can_ptr, this_count, candidate, candidate_count);
+//      for (ui in = 0; in < candidate_count; ++in) cout << candidate[in] << " ";
+//      cout << endl;
       swap(u_can_ptr, candidate);
       swap(count, candidate_count);
     }
-
   }
   if (!count) { if (parent_node_[index].size() > 1) delete[] wait_for_delete; return;}
   total_count_[index] += count;
-  std::uniform_int_distribution<> distrib(0, count-1);
-  ui sample_total = 0;
-  if (sample_type_ == SampleType::Linear) sample_total = max((ui)1, ui(count*sample_ratio_));
-  else sample_total = max((ui)1, ui(log(count)*sample_ratio_));
+//  std::uniform_int_distribution<> distrib(0, count-1);
+  ui sample_total = count;
+//  if (sample_type_ == SampleType::Linear) sample_total = max((ui)1, ui(count*sample_ratio_));
+//  else sample_total = max((ui)1, ui(log(count)*sample_ratio_));
   sample_count_[index] += sample_total;
 
   for (ui can_count = 0; can_count < sample_total; ++can_count) {
-    embedding_[index] = u_can_ptr[distrib(gen_)];
+    embedding_[index] = u_can_ptr[can_count];
+    visited_node_[u_can_ptr[can_count]] = true;
     if (IsomorphismTest(visited_node_, embedding_, index)) Expand(index+1);
+    visited_node_[u_can_ptr[can_count]] = false;
   }
   delete[] wait_for_delete;
 }
 
 ull WanderJoin::GetCard() {
   GetJoinOrder();
-//  cout << "join order:" << endl;
-//  for (auto u : join_order_) cout << u << " ";
-//  cout << endl << "node_to_index" << endl;
-//  for (auto index : node_to_index_) cout << index << " ";
-//  cout << endl << "parent nodes:" << endl;
-//  for (auto& x : parent_node_) {
-//    for (auto u : x) cout << u << " ";
-//    cout << endl;
-//  }
+  cout << "join order:" << endl;
+  for (auto u : join_order_) cout << u << " ";
+  cout << endl << "node_to_index" << endl;
+  for (auto index : node_to_index_) cout << index << " ";
+  cout << endl << "parent nodes:" << endl;
+  for (auto& x : parent_node_) {
+    for (auto u : x) cout << u << " ";
+    cout << endl;
+  }
 
 
   //  first node
@@ -136,10 +146,10 @@ ull WanderJoin::GetCard() {
   if (!first_node_count) return 0;
   total_count_[0] = first_node_count;
 
-  std::uniform_int_distribution<> distrib(0, first_node_count-1);
-  ui sample_total = 0;
-  if (sample_type_ == SampleType::Linear) sample_total = max((ui)1, ui(first_node_count*sample_ratio_));
-  else sample_total = max((ui)1, ui(log(first_node_count)*sample_ratio_));
+//  std::uniform_int_distribution<> distrib(0, first_node_count-1);
+  ui sample_total = first_node_count;
+//  if (sample_type_ == SampleType::Linear) sample_total = max((ui)1, ui(first_node_count*sample_ratio_));
+//  else sample_total = max((ui)1, ui(log(first_node_count)*sample_ratio_));
   sample_count_[0] = sample_total;
 //  cout << "sample total = " << sample_total << endl;
   for (ui index = 0; index < first_node_count; ++index) {
@@ -147,7 +157,9 @@ ull WanderJoin::GetCard() {
     ui first_embedding = first_node_ptr[index];
 //    ui first_embedding = first_node_ptr[distrib(gen_)];
     embedding_[0] = first_embedding;
+    visited_node_[first_embedding] = true;
     Expand(1);
+    visited_node_[first_embedding] = false;
   }
 //  cout << "succ_count = " << succ_count_ << endl;
 
