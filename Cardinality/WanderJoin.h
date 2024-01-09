@@ -33,6 +33,7 @@ class WanderJoin {
     enum class SampleType{Linear, Log} sample_type_;
     double sample_ratio_;
 
+    static bool exit_;
     WanderJoin() = default;
     WanderJoin(Graph* data_graph, Graph* query_graph, SampleType sample_type, double sample_ratio);
     ~WanderJoin();

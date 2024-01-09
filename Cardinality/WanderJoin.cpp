@@ -13,6 +13,8 @@ using namespace std;
 
 const ui LEAST_NUM = 5;
 
+bool WanderJoin::exit_ = false;
+
 WanderJoin::WanderJoin(Graph *data_graph, Graph *query_graph, SampleType sample_type, double sample_ratio):
     data_graph_(data_graph), query_graph_(query_graph), succ_count_(0), sample_type_(sample_type), sample_ratio_(sample_ratio) {
   embedding_ = new ui[query_graph->getVerticesCount()];
@@ -77,6 +79,9 @@ void WanderJoin::GetJoinOrder() {
 }
 
 void WanderJoin::Expand(ui index) {
+  if (WanderJoin::exit_)
+    return;
+
   if (index == query_graph_->getVerticesCount()) {
     ++succ_count_;
     return;
@@ -98,8 +103,8 @@ void WanderJoin::Expand(ui index) {
                                                              query_graph_->getVertexLabel(join_order_[index]),
                                                              this_count);
       ComputeSetIntersection::ComputeCandidates(u_can_ptr, count, this_can_ptr, this_count, candidate, candidate_count);
-      swap(u_can_ptr, candidate);
-      swap(count, candidate_count);
+      u_can_ptr = candidate;
+      count = candidate_count;
     }
   }
   if (!count) { if (parent_node_[index].size() > 1) delete[] wait_for_delete; return;}

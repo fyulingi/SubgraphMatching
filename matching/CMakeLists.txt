@@ -12,7 +12,7 @@ set(SUBGRAPH_MATCHING_FILE_LIST
         GenerateFilteringPlan.cpp
         GenerateFilteringPlan.h
         StudyPerformance.cpp
-        EstCardOneDir.cpp)
+)
 
 set(EST_CARD_FILE_LIST
         matchingcommand.cpp
