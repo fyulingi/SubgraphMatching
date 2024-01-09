@@ -11,12 +11,19 @@ set(SUBGRAPH_MATCHING_FILE_LIST
         EvaluateQuery.h
         GenerateFilteringPlan.cpp
         GenerateFilteringPlan.h
-        StudyPerformance.cpp)
+        StudyPerformance.cpp
+        EstCardOneDir.cpp)
 
 set(EST_CARD_FILE_LIST
         matchingcommand.cpp
         matchingcommand.h
         EstCard.cpp
+)
+
+set(EST_CARD_DIR_FILE_LIST
+        matchingcommand.cpp
+        matchingcommand.h
+        EstCardOneDir.cpp
 )
 
 set(GRAPH_CONVERTER_FILE_LIST
@@ -27,6 +34,10 @@ target_link_libraries(SubgraphMatching.out graph utility)
 
 add_executable(EstCard.out ${EST_CARD_FILE_LIST})
 target_link_libraries(EstCard.out graph utility card)
+
+add_executable(EstCardOneDir.out ${EST_CARD_DIR_FILE_LIST})
+target_link_libraries(EstCardOneDir.out graph utility card)
+
 
 add_executable(GraphConverter.out ${GRAPH_CONVERTER_FILE_LIST})
 target_link_libraries(GraphConverter.out graph utility)

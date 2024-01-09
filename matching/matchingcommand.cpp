@@ -23,6 +23,7 @@ MatchingCommand::MatchingCommand(const int argc, char **argv) : CommandParser(ar
     options_key[OptionKeyword::CSRFilePath] = "-csr";
     options_key[OptionKeyword::CardEstMethod] = "-method";
     options_key[OptionKeyword::SampleRatio] = "-ratio";
+    options_key[OptionKeyword::QueryDir] = "-qd";
   processOptions();
 };
 
@@ -74,4 +75,5 @@ void MatchingCommand::processOptions() {
 
     options_value[OptionKeyword::CardEstMethod] = getCommandOption(options_key[OptionKeyword::CardEstMethod]);
     options_value[OptionKeyword::SampleRatio] = getCommandOption(options_key[OptionKeyword::SampleRatio]);
+    options_value[OptionKeyword::QueryDir] = getCommandOption(options_key[OptionKeyword::QueryDir]);
 }

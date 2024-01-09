@@ -25,7 +25,8 @@ enum OptionKeyword {
     DistributionFilePath = 13,          // -dis_file, The output path of the distribution array
     CSRFilePath = 14,                   // -csr, The input csr file path
     CardEstMethod = 15,
-    SampleRatio = 16
+    SampleRatio = 16,
+    QueryDir = 17
 };
 
 class MatchingCommand : public CommandParser{
@@ -104,6 +105,10 @@ public:
 
     std::string getSampleRatio() {
       return options_value[OptionKeyword::SampleRatio] == "" ? "" : options_value[OptionKeyword::SampleRatio];
+    }
+
+    std::string getQueryDir() {
+      return options_value[OptionKeyword::QueryDir] == "" ? "" : options_value[OptionKeyword::QueryDir];
     }
 };
 

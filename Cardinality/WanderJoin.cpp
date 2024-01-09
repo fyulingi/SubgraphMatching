@@ -144,13 +144,13 @@ ull WanderJoin::GetCard() {
     Expand(1);
     visited_node_[first_embedding] = false;
   }
-  cout << "succ_count = " << succ_count_ << endl;
+//  cout << "succ_count = " << succ_count_ << endl;
 
-  cout << "total_count_: " << endl;
-  for (auto x : total_count_) cout << x << " ";
-  cout << endl << "sample_count_: " << endl;
-  for (auto x : sample_count_) cout << x << " ";
-  cout << endl;
+//  cout << "total_count_: " << endl;
+//  for (auto x : total_count_) cout << x << " ";
+//  cout << endl << "sample_count_: " << endl;
+//  for (auto x : sample_count_) cout << x << " ";
+//  cout << endl;
   double est_card = succ_count_;
   for (ui index = 0; index < total_count_.size(); ++index) {
     est_card = max(est_card*total_count_[index]/max(sample_count_[index], (ui)1), 1.0);
