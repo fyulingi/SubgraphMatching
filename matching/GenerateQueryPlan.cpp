@@ -1088,6 +1088,37 @@ void GenerateQueryPlan::generateOrderSpectrum(const Graph *query_graph, std::vec
     }
 }
 
+void GenerateQueryPlan::ReadQueryPlan(const Graph *query_graph, const std::vector<ui> &plan, Edges ***edge_matrix, ui *&order, ui *&pivot) {
+    ui query_vertices_num = query_graph->getVerticesCount();
+    order = new ui[query_vertices_num];
+    pivot = new ui[query_vertices_num];
+
+    for (ui i = 0; i < query_vertices_num; ++i) {
+        order[i] = plan[i];
+    }
+
+    for (ui i = 0; i < query_vertices_num; ++i) {
+        VertexID begin_vertex = order[i];
+        ui nbrs_cnt;
+        const ui* nbrs = query_graph->getVertexNeighbors(begin_vertex, nbrs_cnt);
+
+        ui pivot_node = -1;
+        ui pivot_edge_count = std::numeric_limits<ui>::max();
+
+        for (ui j = 0; j < nbrs_cnt; ++j) {
+            VertexID end_vertex = nbrs[j];
+            if (std::find(order, order + i, end_vertex) == order + i) continue;
+
+            ui cur_value = (*edge_matrix[begin_vertex][end_vertex]).edge_count_;
+            if (cur_value < pivot_edge_count) {
+                pivot_edge_count = cur_value;
+                pivot_node = end_vertex;
+            }
+        }
+        pivot[i] = pivot_node;
+    }
+}
+
 void GenerateQueryPlan::checkQueryPlanCorrectness(const Graph *query_graph, ui *order) {
     ui query_vertices_num = query_graph->getVerticesCount();
     std::vector<bool> visited_vertices(query_vertices_num, false);

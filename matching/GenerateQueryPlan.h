@@ -7,6 +7,7 @@
 
 #include "graph/graph.h"
 #include <vector>
+#include <map>
 class GenerateQueryPlan {
 public:
     static void generateGQLQueryPlan(const Graph *data_graph, const Graph *query_graph, ui *candidates_count,
@@ -33,6 +34,9 @@ public:
                                 TreeNode *tree, ui *bfs_order, ui *candidates_count, ui **&weight_array);
 
     static void generateCECIQueryPlan(const Graph* query_graph, TreeNode *tree, ui *bfs_order, ui *&order, ui *&pivot);
+
+    static void ReadQueryPlan(const Graph *query_graph, const std::vector<ui> &plan, Edges ***edge_matrix, ui *&order, ui *&pivot);
+
     static void checkQueryPlanCorrectness(const Graph* query_graph, ui* order, ui* pivot);
 
     static void checkQueryPlanCorrectness(const Graph* query_graph, ui* order);
