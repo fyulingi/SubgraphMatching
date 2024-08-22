@@ -14,6 +14,7 @@
 
 #define NANOSECTOSEC(elapsed_time) ((elapsed_time)/(double)1000000000)
 #define BYTESTOMB(memory_cost) ((memory_cost)/(double)(1024 * 1024))
+const ull TIME_LIMIT_IN_SEC(5);
 
 int main(int argc, char** argv) {
   MatchingCommand command(argc, argv);
@@ -65,11 +66,32 @@ int main(int argc, char** argv) {
       if (est_method == "wjlinear") wj_est_ptr = new WanderJoin(data_graph, query_graph, WanderJoin::SampleType::Linear, std::stod(sample_ratio));
       else wj_est_ptr = new WanderJoin(data_graph, query_graph, WanderJoin::SampleType::Log, std::stod(sample_ratio));
 
+      WanderJoin::exit_ = false;
       auto est_start = std::chrono::high_resolution_clock::now();
-      auto est_card = wj_est_ptr->GetCard();
+
+      std::future<ull> future = std::async(std::launch::async, [wj_est_ptr](){
+        return wj_est_ptr->GetCard();
+      });
+      std::future_status status;
+      do {status = future.wait_for(std::chrono::seconds(TIME_LIMIT_IN_SEC));
+        if (status == std::future_status::deferred) {
+          std::cout << "Deferred\n";
+          exit(-1);
+        } else if (status == std::future_status::timeout) {
+          WanderJoin::exit_ = true;
+        }
+      } while (status != std::future_status::ready);
+
+      auto est_card = future.get();
       auto est_end = std::chrono::high_resolution_clock::now();
+
       double est_time_in_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(est_end - est_start).count();
-      std::cout << query_entry.path() << " " << est_card << " " << NANOSECTOSEC(est_time_in_ns) << std::endl;
+      if (WanderJoin::exit_ == false){
+        std::cout << query_entry.path() << " " << est_card << " " << NANOSECTOSEC(est_time_in_ns) << std::endl;
+      }
+      else{
+        std::cout << query_entry.path() << " " << est_card << " " << "TIMEOUT" << std::endl;
+      }
 
       delete query_graph;
       delete wj_est_ptr;
