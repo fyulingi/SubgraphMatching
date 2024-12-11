@@ -28,4 +28,14 @@
 * `method` : cardinality estimation method  (`wjlinear` or `wjlog`)
 * `ratio` : ratio of sampling (only used for `wjlinear` method)
 
+### Order Method
+
+|QSI| the ordering method of QuickSI |
+|GQL| the ordering method of GraphQL |
+|TSO| the ordering method of TurboIso |
+|CFL| the ordering method of CFL |
+|DPiso| the ordering method of DP-iso |
+|CECI| the ordering method of CECI|
+|RI| the ordering method of RI |
+|VF2++| the ordering method of VF2++ 
 

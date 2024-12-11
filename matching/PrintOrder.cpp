@@ -357,65 +357,18 @@ int main(int argc, char** argv) {
         std::cout << "Generate " << spectrum.size() << " matching orders." << std::endl;
     }
 
-    std::cout << "-----" << std::endl;
-    std::cout << "Enumerate..." << std::endl;
-    size_t output_limit = 0;
-    size_t embedding_count = 0;
-    if (input_max_embedding_num == "MAX") {
-        output_limit = std::numeric_limits<size_t>::max();
+    cout << "Join_order " << query_graph->getVerticesCount() << endl;
+
+    for (ui i = 0; i < query_graph->getVerticesCount(); ++i) {
+        cout << matching_order[i] << " ";
     }
-    else {
-        sscanf(input_max_embedding_num.c_str(), "%zu", &output_limit);
+    cout << endl;
+    for (ui i = 0; i < query_graph->getVerticesCount(); ++i) {
+        cout << pivots[i] << " ";
     }
+    cout << endl;
 
 
-#if ENABLE_QFLITER == 1
-    EvaluateQuery::qfliter_bsr_graph_ = BuildTable::qfliter_bsr_graph_;
-#endif
-
-    size_t call_count = 0;
-    size_t time_limit = 0;
-    sscanf(input_time_limit.c_str(), "%zu", &time_limit);
-
-    start = std::chrono::high_resolution_clock::now();
-
-    if (input_engine_type == "EXPLORE") {
-        embedding_count = EvaluateQuery::exploreGraph(data_graph, query_graph, edge_matrix, candidates,
-                                                      candidates_count, matching_order, pivots, output_limit, call_count);
-    } else if (input_engine_type == "LFTJ") {
-        embedding_count = EvaluateQuery::LFTJ(data_graph, query_graph, edge_matrix, candidates, candidates_count,
-                                              matching_order, output_limit, call_count);
-    } else if (input_engine_type == "GQL") {
-        embedding_count = EvaluateQuery::exploreGraphQLStyle(data_graph, query_graph, candidates, candidates_count,
-                                                             matching_order, output_limit, call_count);
-    } else if (input_engine_type == "QSI") {
-        embedding_count = EvaluateQuery::exploreQuickSIStyle(data_graph, query_graph, candidates, candidates_count,
-                                                             matching_order, pivots, output_limit, call_count);
-    }
-    else if (input_engine_type == "DPiso") {
-        embedding_count = EvaluateQuery::exploreDPisoStyle(data_graph, query_graph, dpiso_tree,
-                                                           edge_matrix, candidates, candidates_count,
-                                                           weight_array, dpiso_order, output_limit,
-                                                           call_count);
-//        embedding_count = EvaluateQuery::exploreDPisoRecursiveStyle(data_graph, query_graph, dpiso_tree,
-//                                                           edge_matrix, candidates, candidates_count,
-//                                                           weight_array, dpiso_order, output_limit,
-//                                                           call_count);
-    }
-    else if (input_engine_type == "Spectrum") {
-        spectrum_analysis(data_graph, query_graph, edge_matrix, candidates, candidates_count, output_limit, spectrum, time_limit);
-    }
-    else if (input_engine_type == "CECI") {
-        embedding_count = EvaluateQuery::exploreCECIStyle(data_graph, query_graph, ceci_tree, candidates, candidates_count, TE_Candidates,
-                NTE_Candidates, ceci_order, output_limit, call_count);
-    }
-    else {
-        std::cout << "The specified engine type '" << input_engine_type << "' is not supported." << std::endl;
-        exit(-1);
-    }
-
-    end = std::chrono::high_resolution_clock::now();
-    double enumeration_time_in_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
 
 #ifdef DISTRIBUTION
     std::ofstream outfile (input_distribution_file_path , std::ofstream::binary);
@@ -423,8 +376,6 @@ int main(int argc, char** argv) {
     delete[] EvaluateQuery::distribution_count_;
 #endif
 
-    std::cout << "--------------------------------------------------------------------" << std::endl;
-    std::cout << "Release memories..." << std::endl;
     /**
      * Release the allocated memories.
      */
@@ -463,24 +414,7 @@ int main(int argc, char** argv) {
     delete query_graph;
     delete data_graph;
 
-    /**
-     * End.
-     */
-    std::cout << "--------------------------------------------------------------------" << std::endl;
-    double preprocessing_time_in_ns = filter_vertices_time_in_ns + build_table_time_in_ns + generate_query_plan_time_in_ns;
-    double total_time_in_ns = preprocessing_time_in_ns + enumeration_time_in_ns;
 
-    printf("Load graphs time ms: %.4lf\n", NANOSECTOMILLI(load_graphs_time_in_ns));
-    printf("Filter vertices time ms: %.4lf\n", NANOSECTOMILLI(filter_vertices_time_in_ns));
-    printf("Build table time ms: %.4lf\n", NANOSECTOMILLI(build_table_time_in_ns));
-    printf("Generate query plan time ms: %.4lf\n", NANOSECTOMILLI(generate_query_plan_time_in_ns));
-    printf("Enumerate time ms: %.4lf\n", NANOSECTOMILLI(enumeration_time_in_ns));
-    printf("Preprocessing time ms: %.4lf\n", NANOSECTOMILLI(preprocessing_time_in_ns));
-    printf("Total time ms: %.4lf\n", NANOSECTOMILLI(total_time_in_ns));
-    printf("Memory cost (MB): %.4lf\n", BYTESTOMB(memory_cost_in_bytes));
-    printf("#Embeddings: %zu\n", embedding_count);
-    printf("Call Count: %zu\n", call_count);
-    printf("Per Call Count Time (nanoseconds): %.4lf\n", enumeration_time_in_ns / (call_count == 0 ? 1 : call_count));
-    std::cout << "End." << std::endl;
+
     return 0;
 }

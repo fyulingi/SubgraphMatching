@@ -26,7 +26,8 @@ enum OptionKeyword {
     CSRFilePath = 14,                   // -csr, The input csr file path
     CardEstMethod = 15,
     SampleRatio = 16,
-    QueryDir = 17
+    QueryDir = 17,
+    InputOrder = 18
 };
 
 class MatchingCommand : public CommandParser{
@@ -109,6 +110,10 @@ public:
 
     std::string getQueryDir() {
       return options_value[OptionKeyword::QueryDir] == "" ? "" : options_value[OptionKeyword::QueryDir];
+    }
+
+    std::string getInputOrder() {
+        return options_value[OptionKeyword::InputOrder] == "" ? "" : options_value[OptionKeyword::Order];
     }
 };
 

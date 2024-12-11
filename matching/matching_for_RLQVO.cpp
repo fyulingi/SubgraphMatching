@@ -18,42 +18,6 @@
 #define NANOSECTOMSEC(elapsed_time) ((elapsed_time)/(double)1000000)
 #define BYTESTOMB(memory_cost) ((memory_cost)/(double)(1024 * 1024))
 
-string plans_file_path = "/home/yanglinglin/CCG_count/result/plans.txt";
-string result_save_path_pre = "/home/yanglinglin/CCG_count/result/execution/";
-
-map<string, vector<ui>> ReadPlansFile(const string &filename) {
-    map<string, vector<ui>> result;
-    ifstream infile(filename);
-    string line;
-
-    while (getline(infile, line)) {
-        stringstream ss(line);
-        string key;
-        string vectorStr;
-        double value;
-
-        getline(ss, key, ',');
-
-        getline(ss, vectorStr, ']');
-        vectorStr = vectorStr.substr(1, vectorStr.size());
-
-        vector<ui> vec;
-        stringstream vectorStream(vectorStr);
-        string numStr;
-        while (getline(vectorStream, numStr, ' ')) {
-            if (!numStr.empty()) {
-                vec.push_back(stoi(numStr));
-            }
-        }
-
-        // parser value, not used
-        ss >> value;
-
-        result[key] = vec;
-    }
-    return result;
-}
-
 std::string extractFileName(const std::string& path) {
     // 找到最后一个 '/' 的位置
     size_t lastSlash = path.find_last_of('/');
@@ -95,6 +59,26 @@ size_t enumerate(Graph* data_graph, Graph* query_graph, Edges*** edge_matrix, ui
     return embedding_count;
 }
 
+std::vector<unsigned int> stringToVector(const std::string& str) {
+    std::vector<unsigned int> result;
+    std::stringstream ss(str);  // Create a string stream from the input string
+    std::string token;          // Temporary string to store split values
+
+    // Split the string by comma
+    while (std::getline(ss, token, ',')) {
+        // Convert token to an unsigned integer and add to the vector
+        try {
+            result.push_back(std::stoul(token));  // stoul handles unsigned long and validates input
+        } catch (const std::invalid_argument& e) {
+            std::cerr << "Invalid input: " << token << std::endl;
+        } catch (const std::out_of_range& e) {
+            std::cerr << "Out of range: " << token << std::endl;
+        }
+    }
+
+    return result;
+}
+
 void spectrum_analysis(Graph* data_graph, Graph* query_graph, Edges*** edge_matrix, ui** candidates, ui* candidates_count,
                        size_t output_limit, std::vector<std::vector<ui>>& spectrum, size_t time_limit_in_sec) {
 
@@ -126,7 +110,7 @@ void spectrum_analysis(Graph* data_graph, Graph* query_graph, Edges*** edge_matr
 
 int main(int argc, char** argv) {
     MatchingCommand command(argc, argv);
-    std::string input_query_graph_dir = command.getQueryDir();
+    std::string input_query_graph_file = command.getQueryGraphFilePath();
     std::string input_data_graph_file = command.getDataGraphFilePath();
     std::string input_filter_type = command.getFilterType();
     std::string input_order_type = command.getOrderType();
@@ -140,7 +124,7 @@ int main(int argc, char** argv) {
      */
     std::cout << "Command Line:" << std::endl;
     std::cout << "\tData Graph: " << input_data_graph_file << std::endl;
-    std::cout << "\tQuery Graph Dir: " << input_query_graph_dir << std::endl;
+    std::cout << "\tQuery Graph File: " << input_query_graph_file << std::endl;
     std::cout << "\tFilter Type: " << input_filter_type << std::endl;
     std::cout << "\tOrder Type: " << input_order_type << std::endl;
     std::cout << "\tEngine Type: " << input_engine_type << std::endl;
@@ -148,7 +132,6 @@ int main(int argc, char** argv) {
     std::cout << "\tTime Limit (seconds): " << input_time_limit << std::endl;
     std::cout << "\tOrder Num: " << input_order_num << std::endl;
     std::cout << "\tDistribution File Path: " << input_distribution_file_path << std::endl;
-    std::cout << "\tPlans File Path: " << plans_file_path << std::endl;
     std::cout << "--------------------------------------------------------------------" << std::endl;
 
     /**
@@ -165,27 +148,11 @@ int main(int argc, char** argv) {
     data_graph->printGraphMetaData();
     std::cout << "--------------------------------------------------------------------" << std::endl;
 
-    auto file_plans_map = ReadPlansFile(plans_file_path);
-
-    // 使用 std::filesystem::path 提取文件名
-    std::filesystem::path p(input_data_graph_file);
-    std::string filename = p.stem().string();  // 获取文件名（不含扩展名）
-
-    std::ofstream result_file(result_save_path_pre+filename+"_"+input_order_type+".txt");
-    if (!result_file.is_open()) {
-        std::cerr << "Failed to open result file." << std::endl;
-        exit(-1);
-    }
-
-    for (const auto &query_entry : std::filesystem::directory_iterator(input_query_graph_dir)) {
-        if (query_entry.is_regular_file()) { // 判断是否为文件
-
-            cout << "Start query: " << query_entry.path() << endl;
-            string query_name = extractFileName(query_entry.path());
-            if (!file_plans_map.count(query_name)) continue;
+    
+            cout << "Start query: " << input_query_graph_file << endl;
             Graph* query_graph = new Graph(true);
 
-            query_graph->loadGraphFromFile(query_entry.path());
+            query_graph->loadGraphFromFile(input_query_graph_file);
             query_graph->buildCoreTable();
 
             start = std::chrono::high_resolution_clock::now();
@@ -313,11 +280,12 @@ int main(int argc, char** argv) {
             else if (input_order_type == "Spectrum") {
                 GenerateQueryPlan::generateOrderSpectrum(query_graph, spectrum, order_num);
             }
-            else if (input_order_type == "INPUT") {
-                GenerateQueryPlan::ReadQueryPlan(query_graph, file_plans_map[extractFileName(query_entry.path())], edge_matrix, matching_order, pivots);
-            }
             else {
-                std::cout << "The specified order type '" << input_order_type << "' is not supported." << std::endl;
+                vector<ui> plan = stringToVector(input_order_type);
+                for (auto &p : plan) {
+                    cout << p << " ";
+                }
+                GenerateQueryPlan::ReadQueryPlan(query_graph, plan, edge_matrix, matching_order, pivots);
             }
 
             end = std::chrono::high_resolution_clock::now();
@@ -354,7 +322,6 @@ int main(int argc, char** argv) {
             double enumeration_time_in_ns;
 
 
-        auto task = [&]() {
 
             start = std::chrono::high_resolution_clock::now();
 
@@ -397,18 +364,6 @@ int main(int argc, char** argv) {
             
             end = std::chrono::high_resolution_clock::now();
             enumeration_time_in_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
-
-        };
-
-            // 使用 std::async 执行任务
-            std::future<void> future = std::async(std::launch::async, task);
-
-            // 等待任务完成，最多 5 分钟
-            if (future.wait_for(std::chrono::minutes(5)) == std::future_status::timeout) {
-                std::cout << "Task timed out!" << std::endl;
-            } else {
-                std::cout << "Task finished successfully. Embedding count = " << embedding_count << std::endl;
-            }
 
 
 #ifdef DISTRIBUTION
@@ -476,15 +431,6 @@ int main(int argc, char** argv) {
             printf("Per Call Count Time (nanoseconds): %.4lf\n", enumeration_time_in_ns / (call_count == 0 ? 1 : call_count));
             std::cout << "End." << std::endl;
 
-            // The results are printed in ms.
-            result_file << std:: fixed << std::setprecision(5) << query_name << "," << embedding_count << ","
-                        << NANOSECTOMSEC(filter_vertices_time_in_ns) << "," << NANOSECTOMSEC(enumeration_time_in_ns) << ","
-                        << (double)embedding_count/(NANOSECTOMSEC(enumeration_time_in_ns)) << endl;
-
-        }
-    }
-
-    result_file.close();
 
     delete data_graph;
     return 0;
